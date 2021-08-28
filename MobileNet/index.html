@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
+    <div>
+        <div class="container">
+            <button id="predictButton">Predecir</button>
+        </div>
+
+        <div style="display: flex; justify-content: center;">
+            <div>
+                <video autoplay="true" id="videoElement"></video>
+            </div>
+            <div>
+                <table id="predictionsTable">
+                    <thead>
+                        <th>
+                            Clase
+                        </th>
+                        <th>
+                            Probabilidad
+                        </th>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <canvas id="canvasImg" width="1280" height="1920"></canvas>
+    </div>
+
+    <script>
+        let video = document.getElementById("videoElement");
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (err0r) {
+                    console.log("Something went wrong!");
+                });
+        }
+
+        document.getElementById("predictButton").addEventListener("click", () => {
+            let canvas = document.getElementById("canvasImg");
+            canvas.getContext('2d').drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            //let image_data_url = canvas.toDataURL('image/jpeg');
+            predict(canvas);
+        })
+
+        function drawPredictions(predictions) {
+            let predictionTable = document.getElementById("predictionsTable");
+            predictions.forEach(pred => {
+                let row = predictionTable.insertRow(1);
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                cell1.innerHTML = pred.className;
+                cell2.innerHTML = pred.probability;
+            })
+        }
+
+        function predict(canvas) {
+            // Load the model.
+            mobilenet.load().then(model => {
+                // Classify the image.
+                model.classify(canvas).then(predictions => {
+                    console.log('Predictions: ');
+                    console.log(predictions);
+                    drawPredictions(predictions);
+                });
+            });
+        }
+
+
+    </script>
+
+</body>
+<style>
+    .container {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    td {
+        text-align: center;
+    }
+</style>
+
+</html>
