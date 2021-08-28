@@ -30,6 +30,9 @@
                             Probabilidad
                         </th>
                     </thead>
+                    <tbody>
+
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -38,6 +41,38 @@
     </div>
 
     <script>
+        let predictionsCache = {};
+
+        function saveInCache(pred) {
+            let cacheElement = predictionsCache[pred.className];
+            if (!cacheElement || cacheElement.probability < pred.probability) {
+                predictionsCache[pred.className] = pred.probability;
+            }
+        }
+
+        function savePredictions(predictions) {
+            predictions.forEach(pred =>
+                saveInCache(pred)
+            )
+        }
+
+        function convertObjToArray(predictionsCache) {
+            let newArr = [];
+            //Orden N
+            for (className in predictionsCache) {
+                newArr.push({ 'className': className, 'probability': predictionsCache[className] });
+            }
+            return newArr;
+        }
+
+        function getSortCacheArr() {
+            let cacheArr = convertObjToArray(predictionsCache);
+            let sortArr = cacheArr.sort(function (a, b) {
+                return a.probability - b.probability;
+            });
+            return sortArr;
+        }
+
         let video = document.getElementById("videoElement");
 
         if (navigator.mediaDevices.getUserMedia) {
@@ -57,15 +92,16 @@
             predict(canvas);
         })
 
-        function drawPredictions(predictions) {
-            let predictionTable = document.getElementById("predictionsTable");
-            predictions.forEach(pred => {
-                let row = predictionTable.insertRow(1);
+        function drawPredictions(sortCacheArr) {
+            let tbodyPredTableRef = document.querySelector("#predictionsTable tbody");
+            tbodyPredTableRef.innerHTML = "";
+            for (prediction of sortCacheArr) {
+                let row = tbodyPredTableRef.insertRow(0);
                 let cell1 = row.insertCell(0);
                 let cell2 = row.insertCell(1);
-                cell1.innerHTML = pred.className;
-                cell2.innerHTML = pred.probability;
-            })
+                cell1.innerHTML = prediction.className;
+                cell2.innerHTML = prediction.probability;
+            }
         }
 
         function predict(canvas) {
@@ -75,7 +111,9 @@
                 model.classify(canvas).then(predictions => {
                     console.log('Predictions: ');
                     console.log(predictions);
-                    drawPredictions(predictions);
+                    savePredictions(predictions);
+                    let sortCacheArr = getSortCacheArr();
+                    drawPredictions(sortCacheArr);
                 });
             });
         }
