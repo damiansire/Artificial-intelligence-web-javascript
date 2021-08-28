@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>
+    <!--
+    <div>
+        <div class="container">
+            <button id="predictButton">Predecir</button>
+        </div>
+
+        <div style="display: flex; justify-content: center;">
+            <div>
+                <video autoplay="true" id="videoElement"></video>
+            </div>
+            <div>
+                <table id="predictionsTable">
+                    <thead>
+                        <th>
+                            Clase
+                        </th>
+                        <th>
+                            Probabilidad
+                        </th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+-->
+
+    <img id="img" src="cat.jpg" />
+    <canvas id="canvasImg" width="0" height="0"></canvas>
+
+    <script>
+        const img = document.getElementById('img');
+        const canvas = document.getElementById("canvasImg")
+
+        // Load the model.
+        cocoSsd.load().then(model => {
+            // detect objects in the image.
+            model.detect(img).then(predictions => {
+                console.log('Predictions: ', predictions);
+                drawPredictions(predictions)
+            });
+        });
+
+        function drawPrediction(prediction) {
+            let elementName = prediction.class;
+            let points = prediction.bbox;
+            canvas.height = img.height;
+            canvas.width = img.width;
+            let ctx = canvas.getContext("2d");
+            ctx.fillStyle = 'rgba(0,0,255,0.2)';;
+            ctx.fillRect(points[0], points[1], points[2], points[3]);
+            ctx.fillStyle = "RED";
+            ctx.font = "40px Arial";
+            ctx.fillText(elementName, points[0] + 20, points[1] - 10);
+        }
+
+        function drawPredictions(predictions) {
+            predictions.forEach(pred => {
+                drawPrediction(pred);
+            });
+        }
+
+    </script>
+
+    <script>
+
+
+        /*
+        let predictionsCache = {};
+
+        function saveInCache(pred) {
+            let cacheElement = predictionsCache[pred.className];
+            if (!cacheElement || cacheElement.probability < pred.probability) {
+                predictionsCache[pred.className] = pred.probability;
+            }
+        }
+
+        function savePredictions(predictions) {
+            predictions.forEach(pred =>
+                saveInCache(pred)
+            )
+        }
+
+        function convertObjToArray(predictionsCache) {
+            let newArr = [];
+            //Orden N
+            for (className in predictionsCache) {
+                newArr.push({ 'className': className, 'probability': predictionsCache[className] });
+            }
+            return newArr;
+        }
+
+        function getSortCacheArr() {
+            let cacheArr = convertObjToArray(predictionsCache);
+            let sortArr = cacheArr.sort(function (a, b) {
+                return a.probability - b.probability;
+            });
+            return sortArr;
+        }
+
+        let video = document.getElementById("videoElement");
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (err0r) {
+                    console.log("Something went wrong!");
+                });
+        }
+
+        document.getElementById("predictButton").addEventListener("click", () => {
+            let canvas = document.getElementById("canvasImg");
+            canvas.getContext('2d').drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            //let image_data_url = canvas.toDataURL('image/jpeg');
+            predict(canvas);
+        })
+
+        function drawPredictions(sortCacheArr) {
+            let tbodyPredTableRef = document.querySelector("#predictionsTable tbody");
+            tbodyPredTableRef.innerHTML = "";
+            for (prediction of sortCacheArr) {
+                let row = tbodyPredTableRef.insertRow(0);
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                cell1.innerHTML = prediction.className;
+                cell2.innerHTML = prediction.probability;
+            }
+        }
+
+        function predict(canvas) {
+            // Load the model.
+            mobilenet.load().then(model => {
+                // Classify the image.
+                model.classify(canvas).then(predictions => {
+                    console.log('Predictions: ');
+                    console.log(predictions);
+                    savePredictions(predictions);
+                    let sortCacheArr = getSortCacheArr();
+                    drawPredictions(sortCacheArr);
+                });
+            });
+        }
+*/
+
+    </script>
+
+</body>
+<style>
+    .container {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    td {
+        text-align: center;
+    }
+
+    #canvasImg {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+</style>
+
+</html>
